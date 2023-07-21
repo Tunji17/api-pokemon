@@ -70,39 +70,47 @@ app.get(`/pokemons`, async (req: Request, res: Response) => {
     first: lastRequestedPokemonNumber,
   };
 
-  const data: { pokemons : Pokemon[] } = await pokemonClient.request(query, variables);
+  try {
 
-  // Bulk create pokemons using prisma client fails silently if there is a duplicate
+    const data: { pokemons : Pokemon[] } = await pokemonClient.request(query, variables);
+    // Bulk create pokemons using prisma client fails silently if there is a duplicate
 
-  await prisma.pokemon.createMany({
-    data: data.pokemons.map((pokemon: Pokemon) => {
-      const weight = convertDimensions(pokemon.weight);
-      const height = convertDimensions(pokemon.height);
-      return {
-      id: pokemon.id,
-      number: parseInt(pokemon.number),
-      name: pokemon.name,
-      image: pokemon.image,
-      classification: pokemon.classification,
-      weight,
-      height,
-    }}),
-    skipDuplicates: true,
-  });
+    await prisma.pokemon.createMany({
+      data: data.pokemons.map((pokemon: Pokemon) => {
+        const weight = convertDimensions(pokemon.weight);
+        const height = convertDimensions(pokemon.height);
+        return {
+        id: pokemon.id,
+        number: parseInt(pokemon.number),
+        name: pokemon.name,
+        image: pokemon.image,
+        classification: pokemon.classification,
+        weight,
+        height,
+      }}),
+      skipDuplicates: true,
+    });
 
-  const pokemonList = await prisma.pokemon.findMany({
-    skip: pageNumber * limitNumber,
-    take: limitNumber,
-  });
+    const pokemonList = await prisma.pokemon.findMany({
+      skip: pageNumber * limitNumber,
+      take: limitNumber,
+    });
 
-  const pokemons = processPokemonListResponse(pokemonList);
+    const pokemons = processPokemonListResponse(pokemonList);
 
-  return res.status(200).json({
-    success: true,
-    data: pokemons,
-  })
+    return res.status(200).json({
+      success: true,
+      data: pokemons,
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({
+      success: false,
+      error: 'Something went wrong while fetching pokemons please try again later',
+    });
+  }
 })
 
-app.listen(3000, () =>
-  console.log(`🚀 Server ready at: http://localhost:3000`),
-)
+app.listen(8000, () =>
+  console.log(`🚀 Server ready at: http://localhost:8000`)
+);

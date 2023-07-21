@@ -22,7 +22,7 @@ services:
       args:
         - PORT = ${PORT}
     ports:
-      - 3000:${PORT}
+      - 8000:${PORT}
     env_file:
       - .env
     container_name: luxor-api-service
