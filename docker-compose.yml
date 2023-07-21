@@ -1,0 +1,34 @@
+version: '3.4'
+
+services:
+  # Database
+  postgres-service:
+      container_name: luxor-postgres-service
+      image: postgres:14.1-alpine
+      restart: always
+      environment:
+          - POSTGRES_USER=postgres
+          - POSTGRES_PASSWORD=postgres
+      ports:
+          - '5432:5432'
+      volumes:
+          - ./data:/var/lib/postgresql/data
+
+  # API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PORT = ${PORT}
+    ports:
+      - 3000:${PORT}
+    env_file:
+      - .env
+    container_name: luxor-api-service
+    restart: always
+    depends_on:
+      - postgres-service
+    volumes:
+      - ./:/usr/local/apps/api/dev
+
